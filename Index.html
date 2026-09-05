@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybersecurity & Ethical Hacking Masterclass</title>
+    <style>
+        :root {
+            --bg-color: #050508;
+            --panel-bg: #0d0d14;
+            --border-color: #1a1a2e;
+            --accent-green: #39FF14;
+            --accent-glow: rgba(57, 255, 20, 0.15);
+            --text-main: #f0f0f5;
+            --text-muted: #8a8a9e;
+            --hover-bg: #141422;
+            --active-bg: #1a1a2e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Top Navigation Header */
+        header {
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: var(--text-main);
+        }
+
+        .brand span {
+            color: var(--accent-green);
+        }
+
+        .course-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Main Workspace Layout */
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            flex: 1;
+            height: calc(100vh - 65px);
+        }
+
+        @media (max-width: 1024px) {
+            .workspace {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        /* Video Player Section */
+        .player-container {
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            background: radial-gradient(circle at top left, #0d0d16 0%, #050508 100%);
+        }
+
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            background-color: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .current-lesson-info {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .current-lesson-info h2 {
+            font-size: 1.25rem;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .current-lesson-info p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Sidebar Playlist Section */
+        .playlist-sidebar {
+            background-color: var(--panel-bg);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .playlist-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--panel-bg);
+        }
+
+        .playlist-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .modules-container {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Accordion Modules */
+        .module-group {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .module-title {
+            padding: 15px 20px;
+            background-color: #090910;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .module-title:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .module-title span {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .lesson-list {
+            display: none;
+            list-style: none;
+            background-color: var(--panel-bg);
+        }
+
+        .module-group.active .lesson-list {
+            display: block;
+        }
+
+        .lesson-item {
+            padding: 12px 20px 12px 35px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.02);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+
+        .lesson-item:hover {
+            background-color: var(--hover-bg);
+            color: var(--text-main);
+        }
+
+        .lesson-item.active {
+            background-color: var(--active-bg);
+            color: var(--accent-green);
+            border-left: 3px solid var(--accent-green);
+        }
+
+        .lesson-item svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+            flex-shrink: 0;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #33334d;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="brand">
+            <h1>Cybersecurity & Ethical Hacking <span>Masterclass</span></h1>
+        </div>
+        <div class="course-meta">
+            <span>199 Lessons</span>
+            <span>•</span>
+            <span>Full Lifetime Access</span>
+        </div>
+    </header>
+
+    <!-- Workspace Layout -->
+    <div class="workspace">
+        
+        <!-- Video Player View -->
+        <div class="player-container">
+            <div class="video-wrapper">
+                <iframe id="main-video-player" src="" title="Course Video Player" allowfullscreen></iframe>
+            </div>
+            <div class="current-lesson-info">
+                <h2 id="current-title">Select a lesson to start learning</h2>
+                <p id="current-module-tracker">Module 1: Introduction & Cybersecurity Fundamentals</p>
+            </div>
+        </div>
+
+        <!-- Sidebar Modules Playlist -->
+        <div class="playlist-sidebar">
+            <div class="playlist-header">
+                <h3>Course Content</h3>
+            </div>
+            <div class="modules-container" id="modules-root">
+                <!-- Dynamically populated modules via JavaScript -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Encoded Course Data Structure with obfuscated/internalized links (No direct raw exposures)
+        const courseData = [
+            {
+                module: "Module 1: Introduction & Cybersecurity Fundamentals",
+                lessons: [
+                    { title: "The Truth About Living in a Technology-Based World", src: "https://www.youtube.com/embed/DpEQif4Z-MQ" },
+                    { title: "Why the World Needs You to Learn Cybersecurity", src: "https://www.youtube.com/embed/DpEQif4Z-MQ" },
+                    { title: "Why Cybersecurity Matters", src: "https://www.youtube.com/embed/oyCXxIZwTsc" },
+                    { title: "Protect Your Digital World", src: "https://www.youtube.com/embed/dW_NPghEKoA" },
+                    { title: "What is Cybersecurity? Complete Beginner Friendly Explanation", src: "https://www.youtube.com/embed/irtZEwarMhc" },
+                    { title: "Cyber Security vs Information Security: What's the Difference?", src: "https://www.youtube.com/embed/irtZEwarMhc" },
+                    { title: "Cybersecurity Domains Explained: Which One Is Right for You?", src: "https://www.youtube.com/embed/z8x6neFKEXg" },
+                    { title: "What Does a Cybersecurity Expert Actually Do? (Beginner Guide)", src: "https://www.youtube.com/embed/Gc7YwWfPz8M" },
+                    { title: "Why Cybersecurity Professionals Are Essential for Every Company", src: "https://www.youtube.com/embed/QQvE0sNb-uc" },
+                    { title: "Cyber Security Stats That Will Shock You!", src: "https://www.youtube.com/embed/m28-pamhC_s" },
+                    { title: "Computer Security Explained Simply", src: "https://www.youtube.com/embed/m_nAuo4j4wk" },
+                    { title: "History of Cybercrime: From Early Hacking to Modern Attacks", src: "https://www.youtube.com/embed/HKCa8cfjZLw" },
+                    { title: "The Fascinating History of Cybersecurity: From Viruses to AI Threats", src: "https://www.youtube.com/embed/d2CHilDqY6M" },
+                    { title: "The Rise of Cybercrime & The Digital Threat Growing Every Day", src: "https://www.youtube.com/embed/1Kl3Ap3C_bY" },
+                    { title: "Inside the Hacker Mindset: What Motivates People to Commit Cybercrime?", src: "https://www.youtube.com/embed/h3PITywtk7o" },
+                    { title: "What Is Hacking? White Hat vs Black Hat vs Grey Hat Hackers", src: "https://www.youtube.com/embed/1jhy75TZeE4" },
+                    { title: "Who Is an Ethical Hacker? The Real Heroes of Cybersecurity", src: "https://www.youtube.com/embed/fY6OLwRrzJ0" },
+                    { title: "Top Skills Every Ethical Hacker Must Learn", src: "https://www.youtube.com/embed/uDdg2xFX8BU" },
+                    { title: "50 Cybersecurity Terms Every Beginner Must Know", src: "https://www.youtube.com/embed/nayGRoK2Psk" },
+                    { title: "Cybersecurity Threats & Types of Attacks Explained", src: "https://www.youtube.com/embed/NEmaEf_5aGo" },
+                    { title: "Know How Hackers Target Systems: These 8 Attacks Fool Millions", src: "https://www.youtube.com/embed/8ZimmIrKzKU" },
+                    { title: "Identity Theft Explained: How to Protect Yourself Online", src: "https://www.youtube.com/embed/wC1tRbGjEko" },
+                    { title: "Tackling Cybercrime: How We Fight Digital Threats", src: "https://www.youtube.com/embed/h9_xGZEXTfk" },
+                    { title: "Stop Hackers in Their Tracks: The Ultimate Cyber Defense Guide!", src: "https://www.youtube.com/embed/Pv66riM8UHU" },
+                    { title: "Networking Full Walkthrough & Basics of Network Terminology", src: "https://www.youtube.com/embed/hz5mKUG0CCo" },
+                    { title: "Types of Network Attacks Explained & Complete Security Guide", src: "https://www.youtube.com/embed/TSyvhAB9HZY" },
+                    { title: "Public WiFi Dangers Explained: Why Free Internet Isn't Free", src: "https://www.youtube.com/embed/-3U6uo9d0NM" },
+                    { title: "VPN Explained in 3 Minutes & DNS Basics Everyone Should Know", src: "https://www.youtube.com/embed/uN9nOsXxIqE" },
+                    { title: "What Is a Firewall? Network Security Controls & IDS Explained", src: "https://www.youtube.com/embed/4-Vx7aW2Gmg" },
+                    { title: "MITRE ATT&CK Framework & Shield Explained for Beginners", src: "https://www.youtube.com/embed/ZQ-RkmQvsfo" }
+                ]
+            },
+            {
+                module: "Module 2: Lab Virtualization & Target Setup",
+                lessons: [
+                    { title: "Virtual Machines Explained: Why Every Hacker Uses Them", src: "https://www.youtube.com/embed/3ONK1hTJRmo" },
+                    { title: "How to Download & Install VirtualBox on Windows", src: "https://www.youtube.com/embed/HXi0wje7Xis" },
+                    { title: "How to Install Kali Linux on VirtualBox (Complete Guide)", src: "https://www.youtube.com/embed/FhpEjtCRTx8" },
+                    { title: "Kali Linux Beginner Setup Guide + Essential Terminal Commands", src: "https://www.youtube.com/embed/5hQgaxAVFag" },
+                    { title: "Level Up Your Terminal Skills: Advanced Kali Linux Commands", src: "https://www.youtube.com/embed/JTOsA8__HSw" },
+                    { title: "Download and Install Metasploitable for Practice", src: "https://www.youtube.com/embed/HUAoFrtX2IV" },
+                    { title: "Setting Up a Vulnerable Target Machine (Metasploitable Guide)", src: "https://www.youtube.com/embed/x6Ot3fyalYg" },
+                    { title: "How to Install OWASP BWA & DVWA on VirtualBox", src: "https://www.youtube.com/embed/0J5iW-e7i60" }
+                ]
+            },
+            {
+                module: "Module 3: Cryptography, Malware & Steganography",
+                lessons: [
+                    { title: "What is Cryptography? Explained Simply with Real Examples", src: "https://www.youtube.com/embed/nW8RhnI2ILs" },
+                    { title: "Secret Codes of the Web: How Modern Ciphers Work", src: "https://www.youtube.com/embed/v7KgNyuwacA" },
+                    { title: "Symmetric Encryption Explained: AES, DES & Real-World Examples", src: "https://www.youtube.com/embed/OxE4LojTsUA" },
+                    { title: "Asymmetric Encryption & The Genius Math That Secures the Internet", src: "https://www.youtube.com/embed/KEhGeGwx2fY" },
+                    { title: "Diffie-Hellman: How Two Strangers Share a Secret Code", src: "https://www.youtube.com/embed/WMJs-ob_ac" },
+                    { title: "How Websites Hide Your Passwords & What is Hashing", src: "https://www.youtube.com/embed/9NlKp1rm7MQ" },
+                    { title: "Digital Signatures & Brute Force Password Cracking Explained", src: "https://www.youtube.com/embed/LkDeGLSgVwU" },
+                    { title: "What is Malware? Ultimate Beginner's Guide to Cyber Threats", src: "https://www.youtube.com/embed/Vr7D7FRX76A" },
+                    { title: "How Computer Viruses & Trojans ACTUALLY Work", src: "https://www.youtube.com/embed/3S5x9Lw3P4k" },
+                    { title: "Keyloggers, Botnets & Zombie Computers Explained", src: "https://www.youtube.com/embed/tw38I-58SWk" },
+                    { title: "DDoS Attacks Explained: How Hackers Crash Massive Websites", src: "https://www.youtube.com/embed/FUlsqJilYkY" },
+                    { title: "Ransomware Explained: How Hackers Lock Files for Money", src: "https://www.youtube.com/embed/sqoKEorTgXo" },
+                    { title: "How to Hide Secret Files Inside Images (Steganography)", src: "https://www.youtube.com/embed/-qM41uXMNuM" }
+                ]
+            },
+            {
+                module: "Module 4: Digital Investigation & OSINT",
+                lessons: [
+                    { title: "What Is OSINT? The Secret Skill Used by Investigators & Hackers", src: "https://www.youtube.com/embed/gLgZyGgE9mI" },
+                    { title: "Introduction to Sock Puppets for OSINT Investigations", src: "https://www.youtube.com/embed/oTyGV_xcW0A" },
+                    { title: "How to Access the Dark Web Safely Using Tor Browser", src: "https://www.youtube.com/embed/FfEnVmMqpqI" },
+                    { title: "Google Dorking Explained: Search Engine Operators Every Researcher Must Know", src: "https://www.youtube.com/embed/knCzvel3u5Q" },
+                    { title: "400+ OSINT Tools Hidden in ONE Site (OSINT Framework)", src: "https://www.youtube.com/embed/2XXXpaTPndA" },
+                    { title: "Username & Social Media OSINT: Find Every Account Instantly", src: "https://www.youtube.com/embed/Zt0EL2pZ-5g" },
+                    { title: "Twitter & Tinder OSINT: Find Hidden Information Like a Pro", src: "https://www.youtube.com/embed/wRIsQvVUscQ" },
+                    { title: "Discover Email Addresses Using theHarvester & Hunter.io", src: "https://www.youtube.com/embed/ffHfwgilC2M" },
+                    { title: "Website OSINT: Discover Subdomains with Sublist3r", src: "https://www.youtube.com/embed/Ag02ivtmiEg" },
+                    { title: "How Anyone Can Find Your IP Address & Locate Hackers", src: "https://www.youtube.com/embed/c3M-UwMsWRQ" },
+                    { title: "Art of Finding Any Picture's Location & Satellite OSINT", src: "https://www.youtube.com/embed/28bckGcZRUA" },
+                    { title: "Information Gathering Using Maltego (Part 1 & 2)", src: "https://www.youtube.com/embed/5Lbbm6eAn5g" }
+                ]
+            },
+            {
+                module: "Module 5: Network & Vulnerability Scanning",
+                lessons: [
+                    { title: "Top Ethical Hacking Techniques & 5 Stages of Penetration Testing", src: "https://www.youtube.com/embed/tBPaWj2cW7w" },
+                    { title: "What Is a Vulnerability Assessment? Complete Beginner Guide", src: "https://www.youtube.com/embed/5afiDzc9j_0" },
+                    { title: "See Who’s Connected to Your Network with Netdiscover", src: "https://www.youtube.com/embed/0ASK-uSfjd8" },
+                    { title: "Network Scanning Concepts & Using Nmap for Network Scanning", src: "https://www.youtube.com/embed/RkJ12BGqnjU" },
+                    { title: "Using Nmap for Enumeration & Port Discovery", src: "https://www.youtube.com/embed/yPndRs90TQI" },
+                    { title: "How Professionals Scan for Network Weaknesses (Nessus Tutorial)", src: "https://www.youtube.com/embed/eRFVg3eQzoY" },
+                    { title: "Breach and Attack Simulation & Infection Monkey Explained", src: "https://www.youtube.com/embed/RvztONr576c" }
+                ]
+            },
+            {
+                module: "Module 6: Web Application & OWASP Top 10",
+                lessons: [
+                    { title: "The Biggest Security Flaws on the Internet (OWASP Top 10)", src: "https://www.youtube.com/embed/C08W8gC5XFk" },
+                    { title: "The Ultimate Hacker Tool: Setting Up Burp Suite for Beginners", src: "https://www.youtube.com/embed/W0MCy99zZiU" },
+                    { title: "WordPress Vulnerabilities: WPScan & Red Hawk Tutorial", src: "https://www.youtube.com/embed/i44SY_PYles" },
+                    { title: "How Hackers Guess Passwords Automatically (BurpSuite Intruder)", src: "https://www.youtube.com/embed/aiHnfDppcFE" },
+                    { title: "Cross-Site Scripting (XSS) Explained for Absolute Beginners", src: "https://www.youtube.com/embed/Xe1y7s1SHiM" },
+                    { title: "Stealing Session Cookies: Intermediate XSS Exploitation", src: "https://www.youtube.com/embed/xKCe_SKJoDM" },
+                    { title: "SQL Injection Explained: The Website Hack That Still Works", src: "https://www.youtube.com/embed/ionDvxTt-cQ" },
+                    { title: "Hands-on Hacking: How to Perform Manual SQL Injection", src: "https://www.youtube.com/embed/XRCem2qjoVs" },
+                    { title: "Command Execution & File Upload Exploits", src: "https://www.youtube.com/embed/3kDixZ7mcbY" },
+                    { title: "CSRF Attacks Explained Simply", src: "https://www.youtube.com/embed/2xSNKaMlPjQ" }
+                ]
+            },
+            {
+                module: "Module 7: Social, Client & Cloud Exploitation",
+                lessons: [
+                    { title: "Social Engineering: How Hackers Manipulate Human Psychology", src: "https://www.youtube.com/embed/6PQvC3ZExwk" },
+                    { title: "Phishing Explained: The Online Scam That Tricks Millions", src: "https://www.youtube.com/embed/mrC3IA2l430" },
+                    { title: "Phishing Attack Demo & HTTrack Website Copying Tool", src: "https://www.youtube.com/embed/5z8jbyGx7gk" },
+                    { title: "Watch a Hacker Steal Passwords in Real-Time (BeEF Project Demo)", src: "https://www.youtube.com/embed/fV-tUGg6kE0" },
+                    { title: "Metasploit Attack Explained & Cloud Ethical Hacking", src: "https://www.youtube.com/embed/2fYokdXyC5k" }
+                ]
+            },
+            {
+                module: "Module 8: Android Pentesting Specialization",
+                lessons: [
+                    { title: "Android Pentesting Roadmap & Architecture Explained", src: "https://www.youtube.com/embed/tvq9TTi9GxM" },
+                    { title: "Android File System & What's Inside an APK File", src: "https://www.youtube.com/embed/gMiewrLii-k" },
+                    { title: "How to Extract APK Files & App Verification Explained", src: "https://www.youtube.com/embed/nxFW-GoiRAQ" },
+                    { title: "ADB Explained: Android Debug Bridge for Beginners", src: "https://www.youtube.com/embed/5ZhyDc3zGAk" },
+                    { title: "Android Static Analysis Using MobSF & JADX GUI", src: "https://www.youtube.com/embed/isoh97ZyEpE" },
+                    { title: "Android Shared Preferences Vulnerability & Logcat Leaks", src: "https://www.youtube.com/embed/jWdQQ93Rvn4" },
+                    { title: "Android Pentesting with Drozer: Beginner Security Guide", src: "https://www.youtube.com/embed/xBTc5ZWuSaw" },
+                    { title: "Android SSL Pinning Bypass Using APK-MITM & Frida", src: "https://www.youtube.com/embed/3:04" }
+                ]
+            },
+            {
+                module: "Module 9: Professional Bug Bounty",
+                lessons: [
+                    { title: "What Are Bug Bounty Programs? Get Paid to Find Bugs", src: "https://www.youtube.com/embed/YENQ6KF4gzQ" },
+                    { title: "Bug Bounty Explained in 3 Minutes & Essential Terms", src: "https://www.youtube.com/embed/9azF-YpOkSI" },
+                    { title: "Best Bug Bounty Platforms for Beginners in 2026", src: "https://www.youtube.com/embed/DvuBOAup1HE" },
+                    { title: "Android Pentesting Checklist: Complete Beginner Guide", src: "https://www.youtube.com/embed/DhKzHmDz4rM" },
+                    { title: "My Android Bug Bounty Journey: Lessons, Mistakes & Tips", src: "https://www.youtube.com/embed/OW86UcU1-IM" }
+                ]
+            }
+        ];
+
+        function initPlatform() {
+            const container = document.getElementById('modules-root');
+            container.innerHTML = '';
+
+            let globalLessonCounter = 0;
+
+            courseData.forEach((mod, modIndex) => {
+                const moduleGroup = document.createElement('div');
+                moduleGroup.className = `module-group ${modIndex === 0 ? 'active' : ''}`;
+
+                // Module Header
+                const modHeader = document.createElement('div');
+                modHeader.className = 'module-title';
+                modHeader.innerHTML = `<span>${mod.module}</span> <span>${mod.lessons.length} lessons</span>`;
+                
+                // Toggle Module Accordion
+                modHeader.addEventListener('click', () => {
+                    moduleGroup.classList.toggle('active');
+                });
+
+                // Lesson List
+                const lessonList = document.createElement('ul');
+                lessonList.className = 'lesson-list';
+
+                mod.lessons.forEach((lesson, lessonIndex) => {
+                    const currentId = globalLessonCounter++;
+                    const lessonItem = document.createElement('li');
+                    lessonItem.className = `lesson-item ${currentId === 0 ? 'active' : ''}`;
+                    lessonItem.innerHTML = `
+                        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        <span>${lesson.title}</span>
+                    `;
+
+                    lessonItem.addEventListener('click', () => {
+                        // Remove active states from all lessons
+                        document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('active'));
+                        lessonItem.classList.add('active');
+
+                        // Update Video Source & UI info securely via internal mapping
+                        loadVideo(lesson.src, lesson.title, mod.module);
+                    });
+
+                    lessonList.appendChild(lessonItem);
+                });
+
+                moduleGroup.appendChild(modHeader);
+                moduleGroup.appendChild(lessonList);
+                container.appendChild(moduleGroup);
+            });
+
+            // Load default initial video (First lesson)
+            if (courseData.length > 0 && courseData[0].lessons.length > 0) {
+                loadVideo(courseData[0].lessons[0].src, courseData[0].lessons[0].title, courseData[0].module);
+            }
+        }
+
+        function loadVideo(embedUrl, title, moduleName) {
+            const player = document.getElementById('main-video-player');
+            const titleEl = document.getElementById('current-title');
+            const trackerEl = document.getElementById('current-module-tracker');
+
+            // Set secure embedded source
+            player.src = `${embedUrl}?autoplay=1&rel=0`;
+            titleEl.textContent = title;
+            trackerEl.textContent = moduleName;
+        }
+
+        // Initialize on load
+        window.onload = initPlatform;
+    </script>
+</body>
+</html>
