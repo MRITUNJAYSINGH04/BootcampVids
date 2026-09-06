@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cybersecurity & Ethical Hacking Masterclass</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-color: #050508;
@@ -63,16 +64,132 @@
             color: var(--accent-green);
         }
 
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
         .course-meta {
             display: flex;
-            gap: 20px;
+            gap: 15px;
             font-size: 0.85rem;
             color: var(--text-muted);
         }
 
-        /* Main Workspace Layout */
+        /* Auth Button & User Profile */
+        .auth-btn {
+            background: transparent;
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .auth-btn:hover {
+            background: var(--accent-glow);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .user-profile {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+        }
+
+        .user-profile img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid var(--accent-green);
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-left: 10px;
+        }
+        .logout-btn:hover { color: #ff4444; border-color: #ff4444; }
+
+        /* Login Gate Screen (Shown when logged out) */
+        #login-gate {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px;
+            background: radial-gradient(circle at center, #0d0d16 0%, #050508 100%);
+        }
+
+        .gate-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 50px 40px;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .gate-card h2 {
+            font-size: 1.8rem;
+            color: var(--text-main);
+        }
+
+        .gate-card h2 span {
+            color: var(--accent-green);
+        }
+
+        .gate-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .gate-login-btn {
+            background: var(--accent-green);
+            color: #000;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .gate-login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        /* Main Workspace Layout (Hidden until logged in) */
         .workspace {
-            display: grid;
+            display: none; /* Controlled via JS */
             grid-template-columns: 1fr 400px;
             flex: 1;
             height: calc(100vh - 65px);
@@ -120,17 +237,38 @@
             border: 1px solid var(--border-color);
             padding: 20px;
             border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .current-lesson-info h2 {
-            font-size: 1.25rem;
-            margin-bottom: 8px;
+        .lesson-details h2 {
+            font-size: 1.2rem;
+            margin-bottom: 6px;
             color: var(--text-main);
         }
 
-        .current-lesson-info p {
+        .lesson-details p {
             color: var(--text-muted);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+        }
+
+        .complete-btn {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .complete-btn.completed {
+            background-color: var(--accent-glow);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
         }
 
         /* Sidebar Playlist Section */
@@ -147,12 +285,26 @@
             padding: 20px;
             border-bottom: 1px solid var(--border-color);
             background-color: var(--panel-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .playlist-header h3 {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
-            margin-bottom: 5px;
+        }
+
+        .cert-trigger-btn {
+            background: var(--accent-green);
+            color: #000;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: none;
         }
 
         .modules-container {
@@ -203,7 +355,7 @@
             border-bottom: 1px solid rgba(255,255,255,0.02);
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: space-between;
             color: var(--text-muted);
             transition: all 0.2s ease;
         }
@@ -219,6 +371,12 @@
             border-left: 3px solid var(--accent-green);
         }
 
+        .lesson-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
         .lesson-item svg {
             width: 14px;
             height: 14px;
@@ -226,64 +384,163 @@
             flex-shrink: 0;
         }
 
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            border: 1px solid var(--text-muted);
+        }
+
+        .lesson-item.done .status-dot {
+            background-color: var(--accent-green);
+            border-color: var(--accent-green);
+            box-shadow: 0 0 6px var(--accent-green);
+        }
+
+        /* Certificate Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .modal-content h2 { color: var(--accent-green); }
+        .modal-content canvas {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            background: var(--accent-green);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
         /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--bg-color);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #33334d;
-        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
     <header>
         <div class="brand">
             <h1>Cybersecurity & Ethical Hacking <span>Masterclass</span></h1>
         </div>
-        <div class="course-meta">
-            <span>199 Lessons</span>
-            <span>•</span>
-            <span>Full Lifetime Access</span>
+        <div class="header-right">
+            <div class="course-meta" id="header-meta" style="display:none;">
+                <span id="lesson-count-display">0 Lessons</span>
+                <span>•</span>
+                <span>Lifetime Access</span>
+            </div>
+            <button id="header-login-btn" class="auth-btn" style="display:none;">Continue with Google</button>
+            <div id="user-profile" class="user-profile">
+                <img id="user-avatar" src="" alt="Avatar">
+                <span id="user-name"></span>
+                <button id="logout-btn" class="logout-btn">Logout</button>
+            </div>
         </div>
     </header>
 
-    <!-- Workspace Layout -->
-    <div class="workspace">
-        
-        <!-- Video Player View -->
+    <div id="login-gate">
+        <div class="gate-card">
+            <h2>Access <span>Masterclass</span></h2>
+            <p>Please authenticate with your Google account to unlock course modules, track your progress, and earn an automated certificate upon completion.</p>
+            <button id="gate-login-btn" class="gate-login-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.1 8.9 5 12 5z"/><path fill="currentColor" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/><path fill="currentColor" d="M5.3 14.8c-.2-.8-.4-1.7-.4-2.8s.2-2 .4-2.8L1.6 6.3C.6 8.3 0 10.6 0 13s.6 4.7 1.6 6.7l3.7-2.9z"/><path fill="currentColor" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5.3L1.6 15.9C3.5 19.7 7.4 23 12 23z"/></svg>
+                Continue with Google
+            </button>
+        </div>
+    </div>
+
+    <div id="workspace-container" class="workspace">
         <div class="player-container">
             <div class="video-wrapper">
                 <iframe id="main-video-player" src="" title="Course Video Player" allowfullscreen></iframe>
             </div>
             <div class="current-lesson-info">
-                <h2 id="current-title">Select a lesson to start learning</h2>
-                <p id="current-module-tracker">Module 1: Introduction & Cybersecurity Fundamentals</p>
+                <div class="lesson-details">
+                    <h2 id="current-title">Select a lesson to start learning</h2>
+                    <p id="current-module-tracker">Module 1</p>
+                </div>
+                <button id="mark-complete-btn" class="complete-btn">Mark as Complete</button>
             </div>
         </div>
 
-        <!-- Sidebar Modules Playlist -->
         <div class="playlist-sidebar">
             <div class="playlist-header">
                 <h3>Course Content</h3>
+                <button id="claim-cert-btn" class="cert-trigger-btn">Claim Certificate</button>
             </div>
-            <div class="modules-container" id="modules-root">
-                <!-- Dynamically populated modules via JavaScript -->
+            <div class="modules-container" id="modules-root"></div>
+        </div>
+    </div>
+
+    <div id="cert-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>🎉 Congratulations!</h2>
+            <p>You have successfully completed all modules of the masterclass.</p>
+            <canvas id="cert-canvas" width="800" height="600"></canvas>
+            <div class="modal-actions">
+                <button id="download-cert" class="action-btn">Download Certificate</button>
+                <button id="close-modal" class="close-btn">Close</button>
             </div>
         </div>
-
     </div>
 
     <script>
-        // Encoded Course Data Structure with obfuscated/internalized links (No direct raw exposures)
+        const SUPABASE_URL = 'https://uobqastcncpeflahtgyz.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_hehK7-pgTqZxEPLq1lXXaw_VrFndzXp';
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentUser = null;
+        let completedLessons = new Set();
+        let currentActiveLessonId = null;
+        let totalLessonCount = 0;
+
         const courseData = [
             {
                 module: "Module 1: Introduction & Cybersecurity Fundamentals",
@@ -372,7 +629,7 @@
                 module: "Module 5: Network & Vulnerability Scanning",
                 lessons: [
                     { title: "Top Ethical Hacking Techniques & 5 Stages of Penetration Testing", src: "https://www.youtube.com/embed/tBPaWj2cW7w" },
-                    { title: "What Is a Vulnerability Assessment? Complete Beginner Guide", src: "https://www.youtube.com/embed/5afiDzc9j_0" },
+                    { title: "What Is A Vulnerability Assessment? Complete Beginner Guide", src: "https://www.youtube.com/embed/5afiDzc9j_0" },
                     { title: "See Who’s Connected to Your Network with Netdiscover", src: "https://www.youtube.com/embed/0ASK-uSfjd8" },
                     { title: "Network Scanning Concepts & Using Nmap for Network Scanning", src: "https://www.youtube.com/embed/RkJ12BGqnjU" },
                     { title: "Using Nmap for Enumeration & Port Discovery", src: "https://www.youtube.com/embed/yPndRs90TQI" },
@@ -430,49 +687,148 @@
             }
         ];
 
+        // Trigger Google OAuth sign-in
+        async function handleLogin() {
+            const { error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.href.split('#')[0]
+                }
+            });
+            if (error) alert("Login Error: " + error.message);
+        }
+
+        document.getElementById('gate-login-btn').addEventListener('click', handleLogin);
+        document.getElementById('header-login-btn').addEventListener('click', handleLogin);
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await supabaseClient.auth.signOut();
+            window.location.reload();
+        });
+
+        // Initialize Session Check on load
+        async function initAuth() {
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                updateUIState(session);
+
+                supabaseClient.auth.onAuthStateChange((event, session) => {
+                    updateUIState(session);
+                });
+            } catch (err) {
+                console.error("Auth initialization error:", err);
+            }
+        }
+
+        async function updateUIState(session) {
+            currentUser = session?.user || null;
+            const loginGate = document.getElementById('login-gate');
+            const workspace = document.getElementById('workspace-container');
+            const headerMeta = document.getElementById('header-meta');
+            const headerLoginBtn = document.getElementById('header-login-btn');
+            const userProfile = document.getElementById('user-profile');
+
+            if (currentUser) {
+                loginGate.style.display = 'none';
+                workspace.style.display = 'grid';
+                headerMeta.style.display = 'flex';
+                headerLoginBtn.style.display = 'none';
+                userProfile.style.display = 'flex';
+
+                const meta = currentUser.user_metadata;
+                document.getElementById('user-avatar').src = meta.avatar_url || meta.picture || '';
+                document.getElementById('user-name').textContent = meta.full_name || meta.name || 'Student';
+
+                await loadUserProgress(currentUser.id);
+            } else {
+                loginGate.style.display = 'flex';
+                workspace.style.display = 'none';
+                headerMeta.style.display = 'none';
+                headerLoginBtn.style.display = 'flex';
+                userProfile.style.display = 'none';
+                completedLessons.clear();
+            }
+        }
+
+        async function loadUserProgress(userId) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('user_progress')
+                    .select('completed_lessons')
+                    .eq('user_id', userId)
+                    .single();
+
+                if (data && data.completed_lessons) {
+                    completedLessons = new Set(data.completed_lessons);
+                }
+            } catch (e) {
+                // Table might be empty for new users
+                completedLessons = new Set();
+            }
+            initPlatform();
+        }
+
+        async function saveUserProgress() {
+            if (!currentUser) return;
+            const lessonsArray = Array.from(completedLessons);
+            
+            await supabaseClient
+                .from('user_progress')
+                .upsert({ 
+                    user_id: currentUser.id, 
+                    completed_lessons: lessonsArray,
+                    updated_at: new Date()
+                });
+        }
+
         function initPlatform() {
             const container = document.getElementById('modules-root');
             container.innerHTML = '';
-
-            let globalLessonCounter = 0;
+            totalLessonCount = 0;
+            let globalId = 0;
 
             courseData.forEach((mod, modIndex) => {
                 const moduleGroup = document.createElement('div');
                 moduleGroup.className = `module-group ${modIndex === 0 ? 'active' : ''}`;
 
-                // Module Header
                 const modHeader = document.createElement('div');
                 modHeader.className = 'module-title';
                 modHeader.innerHTML = `<span>${mod.module}</span> <span>${mod.lessons.length} lessons</span>`;
-                
-                // Toggle Module Accordion
-                modHeader.addEventListener('click', () => {
-                    moduleGroup.classList.toggle('active');
-                });
+                modHeader.addEventListener('click', () => moduleGroup.classList.toggle('active'));
 
-                // Lesson List
                 const lessonList = document.createElement('ul');
                 lessonList.className = 'lesson-list';
 
-                mod.lessons.forEach((lesson, lessonIndex) => {
-                    const currentId = globalLessonCounter++;
+                mod.lessons.forEach((lesson) => {
+                    const currentId = `l_${globalId++}`;
+                    totalLessonCount++;
+                    const isDone = completedLessons.has(currentId);
+
                     const lessonItem = document.createElement('li');
-                    lessonItem.className = `lesson-item ${currentId === 0 ? 'active' : ''}`;
+                    lessonItem.className = `lesson-item ${isDone ? 'done' : ''} ${globalId === 1 ? 'active' : ''}`;
                     lessonItem.innerHTML = `
-                        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                        <span>${lesson.title}</span>
+                        <div class="lesson-left">
+                            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            <span>${lesson.title}</span>
+                        </div>
+                        <div class="status-dot"></div>
                     `;
 
                     lessonItem.addEventListener('click', () => {
-                        // Remove active states from all lessons
                         document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('active'));
                         lessonItem.classList.add('active');
-
-                        // Update Video Source & UI info securely via internal mapping
+                        currentActiveLessonId = currentId;
                         loadVideo(lesson.src, lesson.title, mod.module);
+                        updateCompleteButtonState();
                     });
 
                     lessonList.appendChild(lessonItem);
+
+                    if (globalId === 1) {
+                        currentActiveLessonId = currentId;
+                        loadVideo(lesson.src, lesson.title, mod.module);
+                    }
                 });
 
                 moduleGroup.appendChild(modHeader);
@@ -480,25 +836,105 @@
                 container.appendChild(moduleGroup);
             });
 
-            // Load default initial video (First lesson)
-            if (courseData.length > 0 && courseData[0].lessons.length > 0) {
-                loadVideo(courseData[0].lessons[0].src, courseData[0].lessons[0].title, courseData[0].module);
-            }
+            document.getElementById('lesson-count-display').textContent = `${totalLessonCount} Lessons`;
+            checkCertificateEligibility();
         }
 
         function loadVideo(embedUrl, title, moduleName) {
-            const player = document.getElementById('main-video-player');
-            const titleEl = document.getElementById('current-title');
-            const trackerEl = document.getElementById('current-module-tracker');
-
-            // Set secure embedded source
-            player.src = `${embedUrl}?autoplay=1&rel=0`;
-            titleEl.textContent = title;
-            trackerEl.textContent = moduleName;
+            document.getElementById('main-video-player').src = `${embedUrl}?autoplay=1&rel=0`;
+            document.getElementById('current-title').textContent = title;
+            document.getElementById('current-module-tracker').textContent = moduleName;
+            updateCompleteButtonState();
         }
 
-        // Initialize on load
-        window.onload = initPlatform;
+        function updateCompleteButtonState() {
+            const btn = document.getElementById('mark-complete-btn');
+            if (completedLessons.has(currentActiveLessonId)) {
+                btn.textContent = "Completed ✓";
+                btn.classList.add('completed');
+            } else {
+                btn.textContent = "Mark as Complete";
+                btn.classList.remove('completed');
+            }
+        }
+
+        document.getElementById('mark-complete-btn').addEventListener('click', async () => {
+            if (!currentUser) return;
+
+            if (completedLessons.has(currentActiveLessonId)) {
+                completedLessons.delete(currentActiveLessonId);
+            } else {
+                completedLessons.add(currentActiveLessonId);
+            }
+
+            await saveUserProgress();
+            initPlatform();
+            updateCompleteButtonState();
+        });
+
+        function checkCertificateEligibility() {
+            const certBtn = document.getElementById('claim-cert-btn');
+            if (completedLessons.size > 0 && completedLessons.size >= totalLessonCount) {
+                certBtn.style.display = 'block';
+            } else {
+                certBtn.style.display = 'none';
+            }
+        }
+
+        // Certificate Modal Logic & Canvas Renderer
+        const modal = document.getElementById('cert-modal');
+        document.getElementById('claim-cert-btn').addEventListener('click', () => {
+            modal.style.display = 'flex';
+            renderCertificateCanvas();
+        });
+        document.getElementById('close-modal').addEventListener('click', () => modal.style.display = 'none');
+
+        function renderCertificateCanvas() {
+            const canvas = document.getElementById('cert-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = '#0d0d14';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = '#39FF14';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
+
+            ctx.fillStyle = '#f0f0f5';
+            ctx.font = 'bold 24px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('CERTIFICATE OF COMPLETION', canvas.width / 2, 110);
+
+            ctx.font = '14px sans-serif';
+            ctx.fillStyle = '#8a8a9e';
+            ctx.fillText('This is proudly presented to', canvas.width / 2, 170);
+
+            ctx.font = 'bold 36px sans-serif';
+            ctx.fillStyle = '#39FF14';
+            const studentName = currentUser?.user_metadata?.full_name || currentUser?.user_metadata?.name || 'Student Name';
+            ctx.fillText(studentName, canvas.width / 2, 240);
+
+            ctx.font = '14px sans-serif';
+            ctx.fillStyle = '#f0f0f5';
+            ctx.fillText('for successfully mastering all modules in the', canvas.width / 2, 310);
+
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillText('Cybersecurity & Ethical Hacking Masterclass', canvas.width / 2, 350);
+
+            ctx.font = '12px sans-serif';
+            ctx.fillStyle = '#8a8a9e';
+            ctx.fillText(`Issued on: ${new Date().toLocaleDateString()}`, canvas.width / 2, 470);
+        }
+
+        document.getElementById('download-cert').addEventListener('click', () => {
+            const canvas = document.getElementById('cert-canvas');
+            const link = document.createElement('a');
+            link.download = 'Cybersecurity_Certificate.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+
+        window.onload = initAuth;
     </script>
 </body>
 </html>
